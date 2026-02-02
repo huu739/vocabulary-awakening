@@ -2839,6 +2839,49 @@
       elements.restartBtn.addEventListener('click', restartPractice);
       elements.reviewWrongBtn.addEventListener('click', showReviewScreen);
       elements.completeRestartBtn.addEventListener('click', restartPractice);
+      
+      // 底部导航按钮事件监听器
+      document.querySelector('footer button:nth-child(1)').addEventListener('click', function() {
+        // 首页按钮
+        showScreen('welcome');
+        // 更新导航按钮状态
+        updateNavButtons(0);
+      });
+      
+      document.querySelector('footer button:nth-child(2)').addEventListener('click', function() {
+        // 单词本按钮
+        alert('单词本功能即将上线，敬请期待！');
+        // 更新导航按钮状态
+        updateNavButtons(1);
+      });
+      
+      document.querySelector('footer button:nth-child(3)').addEventListener('click', function() {
+        // 统计按钮
+        alert('统计功能即将上线，敬请期待！');
+        // 更新导航按钮状态
+        updateNavButtons(2);
+      });
+      
+      document.querySelector('footer button:nth-child(4)').addEventListener('click', function() {
+        // 我的按钮
+        alert('个人中心功能即将上线，敬请期待！');
+        // 更新导航按钮状态
+        updateNavButtons(3);
+      });
+    }
+    
+    // 更新导航按钮状态
+    function updateNavButtons(activeIndex) {
+      const navButtons = document.querySelectorAll('footer button');
+      navButtons.forEach((button, index) => {
+        if (index === activeIndex) {
+          button.classList.add('text-accent');
+          button.classList.remove('text-gray-500');
+        } else {
+          button.classList.add('text-gray-500');
+          button.classList.remove('text-accent');
+        }
+      });
     }
 
     // 开始练习
@@ -3257,7 +3300,7 @@
       
       if (groupPrefix === 'P1') {
         // P1 组解锁逻辑
-        const currentGroupIndex = parseInt(groupSuffix);
+        const currentGroupIndex = parseInt(groupSuffix, 10);
         const nextGroupIndex = currentGroupIndex + 1;
         if (nextGroupIndex <= 4) {
           const nextGroup = `P1-${nextGroupIndex.toString().padStart(2, '0')}`;
@@ -3281,7 +3324,7 @@
       } else if (groupPrefix === 'P2') {
         // P2 组解锁逻辑
         const currentGroupType = groupSuffix[0]; // A, B, C, D
-        const currentGroupIndex = parseInt(groupSuffix.substring(1));
+        const currentGroupIndex = parseInt(groupSuffix.substring(1), 10);
         const nextGroupIndex = currentGroupIndex + 1;
         
         if (currentGroupType === 'A' && nextGroupIndex <= 3) {
