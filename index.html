@@ -205,6 +205,63 @@
         </div>
       </div>
     </section>
+
+    <!-- 单词本屏幕 -->
+    <section id="wordbook-screen" class="bg-white/90 rounded-xl shadow-md p-6 mb-6 hidden">
+      <div class="mb-6">
+        <h2 class="text-xl font-bold text-accent mb-4">单词本</h2>
+        <div class="relative">
+          <input type="text" id="word-search" placeholder="搜索单词..." class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary">
+          <i class="fa fa-search absolute right-3 top-2.5 text-gray-400"></i>
+        </div>
+      </div>
+      <div id="word-list" class="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+        <!-- 单词列表将在这里动态生成 -->
+      </div>
+    </section>
+
+    <!-- 统计屏幕 -->
+    <section id="stats-screen" class="bg-white/90 rounded-xl shadow-md p-6 mb-6 hidden">
+      <div class="mb-6">
+        <h2 class="text-xl font-bold text-accent mb-4">学习统计</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- 左侧统计卡片 -->
+        <div class="space-y-4">
+          <div class="bg-light/50 p-4 rounded-lg">
+            <h3 class="text-sm text-gray-600 mb-1">总积分</h3>
+            <p class="text-2xl font-bold text-accent" id="total-score-stats">0</p>
+          </div>
+          <div class="bg-light/50 p-4 rounded-lg">
+            <h3 class="text-sm text-gray-600 mb-1">已掌握单词</h3>
+            <p class="text-2xl font-bold text-accent" id="mastered-words-stats">0</p>
+          </div>
+          <div class="bg-light/50 p-4 rounded-lg">
+            <h3 class="text-sm text-gray-600 mb-1">连胜天数</h3>
+            <p class="text-2xl font-bold text-accent" id="streak-days">0</p>
+          </div>
+        </div>
+        <!-- 右侧进度环 -->
+        <div class="flex flex-col items-center justify-center">
+          <div class="relative w-48 h-48">
+            <!-- 环形进度条背景 -->
+            <svg class="w-full h-full" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="45" fill="none" stroke="#e5e7eb" stroke-width="10"/>
+              <!-- 环形进度条 -->
+              <circle id="progress-ring" cx="50" cy="50" r="45" fill="none" stroke="#4ade80" stroke-width="10" stroke-linecap="round" transform="rotate(-90 50 50)" stroke-dasharray="283" stroke-dashoffset="283"/>
+            </svg>
+            <!-- 进度百分比 -->
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <p class="text-3xl font-bold text-accent" id="progress-percent">0%</p>
+              <p class="text-sm text-gray-600">P1+P2 完成进度</p>
+            </div>
+          </div>
+          <div class="mt-4 text-center">
+            <p class="text-sm text-gray-600">继续努力，解锁更多词汇！</p>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- 底部导航 -->
@@ -4571,14 +4628,14 @@
       
       document.querySelector('footer button:nth-child(2)').addEventListener('click', function() {
         // 单词本按钮
-        alert('单词本功能即将上线，敬请期待！');
+        showScreen('wordbook');
         // 更新导航按钮状态
         updateNavButtons(1);
       });
       
       document.querySelector('footer button:nth-child(3)').addEventListener('click', function() {
         // 统计按钮
-        alert('统计功能即将上线，敬请期待！');
+        showScreen('stats');
         // 更新导航按钮状态
         updateNavButtons(2);
       });
@@ -5237,25 +5294,36 @@
     // 显示指定屏幕
     function showScreen(screenName) {
       // 隐藏所有屏幕
-      elements.welcomeScreen.classList.add('hidden');
-      elements.questionScreen.classList.add('hidden');
-      elements.reviewScreen.classList.add('hidden');
-      elements.completeScreen.classList.add('hidden');
+      const allScreens = [
+        'welcome-screen', 'question-screen', 'review-screen', 'complete-screen',
+        'wordbook-screen', 'stats-screen'
+      ];
+      
+      allScreens.forEach(screenId => {
+        const screen = document.getElementById(screenId);
+        if (screen) screen.classList.add('hidden');
+      });
       
       // 显示指定屏幕
-      switch (screenName) {
-        case 'welcome':
-          elements.welcomeScreen.classList.remove('hidden');
-          break;
-        case 'question':
-          elements.questionScreen.classList.remove('hidden');
-          break;
-        case 'review':
-          elements.reviewScreen.classList.remove('hidden');
-          break;
-        case 'complete':
-          elements.completeScreen.classList.remove('hidden');
-          break;
+      const screenMap = {
+        'welcome': 'welcome-screen',
+        'question': 'question-screen',
+        'review': 'review-screen',
+        'complete': 'complete-screen',
+        'wordbook': 'wordbook-screen',
+        'stats': 'stats-screen'
+      };
+      
+      if (screenMap[screenName]) {
+        const screen = document.getElementById(screenMap[screenName]);
+        if (screen) screen.classList.remove('hidden');
+      }
+      
+      // 如果是单词本或统计屏幕，加载相应数据
+      if (screenName === 'wordbook') {
+        loadWordbook();
+      } else if (screenName === 'stats') {
+        loadStats();
       }
       
       appState.currentScreen = screenName;
@@ -5271,6 +5339,122 @@
       const progress = Math.round((appState.currentQuestion / appState.totalQuestions) * 100);
       elements.progressBar.style.width = `${progress}%`;
       elements.progressText.textContent = `${progress}%`;
+    }
+
+    // 加载单词本
+    function loadWordbook() {
+      const wordList = document.getElementById('word-list');
+      wordList.innerHTML = '';
+      
+      // 获取所有单词
+      const allWords = [];
+      Object.values(wordDatabase).forEach(group => {
+        group.forEach(word => {
+          allWords.push(word);
+        });
+      });
+      
+      // 从 localStorage 获取单词掌握状态
+      const wordMastery = JSON.parse(localStorage.getItem('wordMastery') || JSON.stringify(appState.wordMastery));
+      
+      // 生成单词列表
+      allWords.forEach(word => {
+        const masteryLevel = wordMastery[word.word] || 0;
+        let masteryStatus = '未解锁';
+        let statusClass = 'text-gray-400';
+        
+        if (masteryLevel === 3) {
+          masteryStatus = '已掌握';
+          statusClass = 'text-green-500';
+        } else if (masteryLevel > 0) {
+          masteryStatus = '学习中';
+          statusClass = 'text-yellow-500';
+        }
+        
+        const wordElement = document.createElement('div');
+        wordElement.className = 'border rounded-lg p-3 hover:bg-light/30 transition-colors cursor-pointer';
+        wordElement.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div>
+              <h4 class="font-semibold">${word.word}</h4>
+              <p class="text-sm text-gray-600">${word.meaning} (${word.partOfSpeech})</p>
+            </div>
+            <span class="text-xs px-2 py-1 rounded-full ${statusClass}">${masteryStatus}</span>
+          </div>
+          <div class="mt-2 text-xs text-gray-500 hidden word-examples">
+            <p class="mb-1">1. ${word.examples[0]}</p>
+            <p class="mb-1">2. ${word.examples[1]}</p>
+            <p>3. ${word.examples[2]}</p>
+          </div>
+        `;
+        
+        // 添加点击事件，显示/隐藏例句
+        wordElement.addEventListener('click', function() {
+          const examples = this.querySelector('.word-examples');
+          examples.classList.toggle('hidden');
+        });
+        
+        wordList.appendChild(wordElement);
+      });
+      
+      // 添加搜索功能
+      const wordSearch = document.getElementById('word-search');
+      wordSearch.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const wordElements = wordList.querySelectorAll('div');
+        
+        wordElements.forEach(element => {
+          const wordText = element.querySelector('h4').textContent.toLowerCase();
+          const meaningText = element.querySelector('p').textContent.toLowerCase();
+          
+          if (wordText.includes(searchTerm) || meaningText.includes(searchTerm)) {
+            element.classList.remove('hidden');
+          } else {
+            element.classList.add('hidden');
+          }
+        });
+      });
+    }
+
+    // 加载统计数据
+    function loadStats() {
+      // 从 localStorage 获取总积分
+      const totalScore = parseInt(localStorage.getItem('totalScore') || '0');
+      document.getElementById('total-score-stats').textContent = totalScore;
+      
+      // 计算已掌握单词数
+      const wordMastery = JSON.parse(localStorage.getItem('wordMastery') || JSON.stringify(appState.wordMastery));
+      const masteredWordsCount = Object.values(wordMastery).filter(count => count === 3).length;
+      document.getElementById('mastered-words-stats').textContent = masteredWordsCount;
+      
+      // 计算连胜天数
+      const streakData = JSON.parse(localStorage.getItem('streakData') || '{"currentStreak": 0, "lastStudyDate": ""}');
+      document.getElementById('streak-days').textContent = streakData.currentStreak;
+      
+      // 计算 P1+P2 完成进度
+      let totalWords = 0;
+      let masteredWords = 0;
+      
+      // 只计算 P1 和 P2 的单词
+      Object.keys(wordDatabase).forEach(groupKey => {
+        if (groupKey.startsWith('P1') || groupKey.startsWith('P2')) {
+          const group = wordDatabase[groupKey];
+          totalWords += group.length;
+          group.forEach(word => {
+            if (wordMastery[word.word] === 3) {
+              masteredWords++;
+            }
+          });
+        }
+      });
+      
+      const progressPercentage = totalWords > 0 ? Math.round((masteredWords / totalWords) * 100) : 0;
+      document.getElementById('progress-percent').textContent = `${progressPercentage}%`;
+      
+      // 更新环形进度条
+      const circumference = 2 * Math.PI * 45;
+      const offset = circumference - (progressPercentage / 100) * circumference;
+      document.getElementById('progress-ring').style.strokeDashoffset = offset;
     }
 
     // 打乱数组
