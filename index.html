@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>词汇觉醒 - Vocabulary Awakening</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#4ade80',
+            secondary: '#22c55e',
+            accent: '#16a34a',
+            light: '#ecfccb',
+            dark: '#15803d'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .card-hover {
+        transition: all 0.3s ease;
+      }
+      .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+      }
+    }
+  </style>
+  <style>
+    /* 隐藏原生单选按钮 */
+    input[type="radio"] {
+      display: none;
+    }
+    
+    /* 确保标签可以点击 */
+    label {
+      cursor: pointer;
+    }
+    
+    /* 确保选项容器的样式正确 */
+    #options-container {
+      min-height: 150px;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-light to-primary min-h-screen font-sans text-gray-800">
+  <!-- 顶部导航栏 -->
+  <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-2">
+        <i class="fa fa-book text-accent text-2xl"></i>
+        <h1 class="text-xl font-bold text-accent">词汇觉醒</h1>
+      </div>
+      <div class="flex items-center space-x-4">
+        <div class="flex items-center">
+          <i class="fa fa-star text-yellow-500 mr-1"></i>
+          <span id="score" class="font-semibold">0</span>
+        </div>
+        <div class="flex items-center">
+          <i class="fa fa-tasks text-gray-600 mr-1"></i>
+          <span id="progress-text" class="font-semibold">0%</span>
+        </div>
+        <button id="settings-btn" class="p-2 rounded-full hover:bg-gray-100">
+          <i class="fa fa-cog text-gray-600"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主内容区 -->
+  <main class="container mx-auto px-4 py-6">
+    <!-- 进度条 -->
+    <div class="mb-6 bg-white/60 rounded-full h-4 overflow-hidden">
+      <div id="progress-bar" class="bg-secondary h-full transition-all duration-500" style="width: 0%"></div>
+    </div>
+
+    <!-- 欢迎屏幕 -->
+    <section id="welcome-screen" class="bg-white/90 rounded-xl shadow-md p-6 mb-6">
+      <div class="text-center py-8">
+        <i class="fa fa-lightbulb-o text-5xl text-accent mb-4"></i>
+        <h2 class="text-2xl font-bold text-accent mb-2">欢迎使用词汇觉醒</h2>
+        <p class="text-gray-600 mb-6">通过多样化的练习方式，让词汇学习更高效、更有趣！</p>
+        <div class="space-y-2 text-left max-w-md mx-auto mb-8">
+          <div class="flex items-start">
+            <i class="fa fa-check-circle text-secondary mt-1 mr-2"></i>
+            <p>同一个单词以3个不同的例句出现3次才算掌握</p>
+          </div>
+          <div class="flex items-start">
+            <i class="fa fa-check-circle text-secondary mt-1 mr-2"></i>
+            <p>包含单句选择题和逻辑配对题</p>
+          </div>
+          <div class="flex items-start">
+            <i class="fa fa-check-circle text-secondary mt-1 mr-2"></i>
+            <p>积分系统、进度条、错题记录和复盘环节</p>
+          </div>
+        </div>
+        
+        <!-- 分组选择 -->
+        <div class="max-w-md mx-auto mb-8">
+          <h3 class="text-lg font-semibold text-gray-700 mb-4">选择练习分组</h3>
+          <div class="grid grid-cols-2 gap-3" id="group-selection">
+            <!-- 分组选项将在这里动态生成 -->
+          </div>
+        </div>
+        
+        <button id="start-btn" class="bg-secondary hover:bg-accent text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-md">
+          开始学习
+        </button>
+      </div>
+    </section>
+
+    <!-- 题目屏幕 -->
+    <section id="question-screen" class="bg-white/90 rounded-xl shadow-md p-6 mb-6 hidden">
+      <!-- 题目区域 -->
+      <div class="mb-4">
+        <h2 id="question-type" class="text-lg font-semibold text-gray-700 mb-2">单句选择题</h2>
+        <p id="question-content" class="text-gray-800 mb-4">请选择与划线单词意思最接近的选项：</p>
+        <div id="question-sentence" class="bg-light/70 p-4 rounded-lg mb-6 border-l-4 border-secondary">
+          <!-- 例句将在这里动态插入 -->
+        </div>
+      </div>
+      
+      <!-- 选项区域 -->
+      <div id="options-container" class="space-y-3 mb-6">
+        <!-- 选项将在这里动态插入 -->
+      </div>
+      
+      <!-- 控制按钮 -->
+      <div class="flex justify-between mb-6" id="question-controls">
+        <button id="prev-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg transition-all duration-300">
+          <i class="fa fa-arrow-left mr-1"></i> 上一题
+        </button>
+        <button id="next-btn" class="bg-secondary hover:bg-accent text-white font-bold py-2 px-6 rounded-lg transition-all duration-300">
+          下一题 <i class="fa fa-arrow-right ml-1"></i>
+        </button>
+      </div>
+      
+      <!-- 结果区域 (默认隐藏) -->
+      <div id="result-section" class="bg-light/50 rounded-lg p-6 mb-6 hidden">
+        <div class="text-center">
+          <i id="result-icon" class="fa fa-check-circle text-4xl text-green-500 mb-4"></i>
+          <h2 id="result-title" class="text-xl font-bold text-gray-800 mb-2">回答正确！</h2>
+          <p id="result-message" class="text-gray-600 mb-4">太棒了，继续加油！</p>
+          <div class="mb-4">
+            <p class="text-gray-700 mb-1">本次得分：<span id="result-score" class="font-semibold text-accent">0</span></p>
+            <p class="text-gray-700">累计得分：<span id="total-score" class="font-semibold text-accent">0</span></p>
+          </div>
+          <button id="continue-btn" class="bg-secondary hover:bg-accent text-white font-bold py-2 px-6 rounded-lg transition-all duration-300">
+            继续
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 错题复盘屏幕 -->
+    <section id="review-screen" class="bg-white/90 rounded-xl shadow-md p-6 mb-6 hidden">
+      <div class="mb-6">
+        <h2 class="text-xl font-bold text-accent mb-4">错题复盘</h2>
+        <p class="text-gray-600 mb-6">以下是您本次练习中的错题，点击查看详细解析：</p>
+        <div id="wrong-questions" class="space-y-4">
+          <!-- 错题将在这里动态插入 -->
+        </div>
+      </div>
+      <div class="flex justify-center">
+        <button id="restart-btn" class="bg-secondary hover:bg-accent text-white font-bold py-2 px-6 rounded-lg transition-all duration-300">
+          重新开始
+        </button>
+      </div>
+    </section>
+
+    <!-- 完成屏幕 -->
+    <section id="complete-screen" class="bg-white/90 rounded-xl shadow-md p-6 mb-6 hidden">
+      <div class="text-center py-8">
+        <i class="fa fa-trophy text-5xl text-yellow-500 mb-4"></i>
+        <h2 class="text-2xl font-bold text-accent mb-2">练习完成！</h2>
+        <p class="text-gray-600 mb-6">恭喜您完成了本次词汇练习！</p>
+        <div class="mb-8 space-y-2">
+          <p class="text-gray-700">本次得分：<span id="complete-score" class="font-semibold text-accent">0</span></p>
+          <p class="text-gray-700">累计得分：<span id="complete-total-score" class="font-semibold text-accent">0</span></p>
+          <p class="text-gray-700">正确率：<span id="accuracy" class="font-semibold text-accent">0%</span></p>
+          <p class="text-gray-700">掌握单词：<span id="mastered-words" class="font-semibold text-accent">0</span>个</p>
+        </div>
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+          <button id="review-wrong-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-6 rounded-lg transition-all duration-300">
+            查看错题
+          </button>
+          <button id="complete-restart-btn" class="bg-secondary hover:bg-accent text-white font-bold py-2 px-6 rounded-lg transition-all duration-300">
+            重新开始
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 底部导航 -->
+  <footer class="bg-white/80 backdrop-blur-md shadow-sm py-3">
+    <div class="container mx-auto px-4">
+      <div class="flex justify-around">
+        <button class="flex flex-col items-center text-accent">
+          <i class="fa fa-home text-lg"></i>
+          <span class="text-xs mt-1">首页</span>
+        </button>
+        <button class="flex flex-col items-center text-gray-500">
+          <i class="fa fa-list text-lg"></i>
+          <span class="text-xs mt-1">单词本</span>
+        </button>
+        <button class="flex flex-col items-center text-gray-500">
+          <i class="fa fa-bar-chart text-lg"></i>
+          <span class="text-xs mt-1">统计</span>
+        </button>
+        <button class="flex flex-col items-center text-gray-500">
+          <i class="fa fa-user text-lg"></i>
+          <span class="text-xs mt-1">我的</span>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // 数据结构 - 分组词库
+    const wordDatabase = {
+      "P1-01": [
+        // 逻辑词 I
+        {
+          word: "although",
+          meaning: "虽然，尽管",
+          partOfSpeech: "conjunction",
+          examples: [
+            "Although it was raining, we still went for a walk.",
+            "She passed the exam although she didn't study much.",
+            "Although he is young, he is very responsible."
+          ]
+        },
+        {
+          word: "unless",
+          meaning: "除非，如果不",
+          partOfSpeech: "conjunction",
+          examples: [
+            "You won't pass the test unless you study hard.",
+            "I won't go unless you come with me.",
+            "Unless it stops raining, we'll have to cancel the picnic."
+          ]
+        },
+        {
+          word: "however",
+          meaning: "然而，但是",
+          partOfSpeech: "adverb",
+          examples: [
+            "I wanted to go; however, I was too busy.",
+            "She studied hard; however, she still failed the test.",
+            "The weather was cold; however, we enjoyed our trip."
+          ]
+        },
+        {
+          word: "instead",
+          meaning: "代替，反而",
+          partOfSpeech: "adverb",
+          examples: [
+            "I didn't eat cake; instead, I had fruit.",
+            "He didn't study; instead, he played video games.",
+            "Instead of going to the park, we stayed home."
+          ]
+        },
+        {
+          word: "until",
+          meaning: "直到...为止",
+          partOfSpeech: "conjunction",
+          examples: [
+            "I will wait until you come back.",
+            "He studied until midnight for the exam.",
+            "We didn't leave until the movie ended."
+          ]
+        },
+        {
+          word: "while",
+          meaning: "当...的时候，然而",
+          partOfSpeech: "conjunction",
+          examples: [
+            "I read a book while I was waiting for the bus.",
+            "She cooks while he cleans the house.",
+            "While I like chocolate, my sister prefers vanilla."
+          ]
+        },
+        {
+          word: "since",
+          meaning: "自从，因为",
+          partOfSpeech: "conjunction",
+          examples: [
+            "I have been studying English since I was 10.",
+            "Since it's raining, we should stay home.",
+            "He hasn't seen his family since last year."
+          ]
+        },
+        {
+          word: "though",
+          meaning: "虽然，尽管",
+          partOfSpeech: "conjunction",
+          examples: [
+            "Though it was late, we continued working.",
+            "She went to school though she was sick.",
+            "Though he is rich, he lives simply."
+          ]
+        },
+        {
+          word: "whether",
+          meaning: "是否",
+          partOfSpeech: "conjunction",
+          examples: [
+            "I don't know whether I should go or stay.",
+            "She asked whether we had finished the project.",
+            "He hasn't decided whether to study abroad or not."
+          ]
+        },
+        {
+          word: "therefore",
+          meaning: "因此，所以",
+          partOfSpeech: "adverb",
+          examples: [
+            "It was raining; therefore, we stayed home.",
+            "He studied hard; therefore, he passed the exam.",
+            "The store was closed; therefore, we went to another one."
+          ]
+        },
+        {
+          word: "otherwise",
+          meaning: "否则，不然",
+          partOfSpeech: "adverb",
+          examples: [
+            "Study hard, otherwise you will fail.",
+            "Hurry up, otherwise we will be late.",
+            "Eat your vegetables, otherwise you won't grow tall."
+          ]
+        },
+        {
+          word: "regardless",
+          meaning: "不管，无论",
+          partOfSpeech: "adverb",
+          examples: [
+            "I'll go regardless of the weather.",
+            "He works hard regardless of the time.",
+            "She loves him regardless of his flaws."
+          ]
+        },
+        {
+          word: "besides",
+          meaning: "此外，而且",
+          partOfSpeech: "adverb",
+          examples: [
+            "I don't like coffee. Besides, it's bad for my health.",
+            "She speaks English well. Besides, she knows French.",
+            "The movie was boring. Besides, it was too long."
+          ]
+        },
+        {
+          word: "moreover",
+          meaning: "此外，而且",
+          partOfSpeech: "adverb",
+          examples: [
+            "He is rich. Moreover, he is generous.",
+            "The house is big. Moreover, it's in a good location.",
+            "She is smart. Moreover, she is hardworking."
+          ]
+        },
+        {
+          word: "furthermore",
+          meaning: "此外，而且",
+          partOfSpeech: "adverb",
+          examples: [
+            "He is smart. Furthermore, he works hard.",
+            "The hotel is clean. Furthermore, it's affordable.",
+            "She is kind. Furthermore, she is helpful."
+          ]
+        }
+      ],
+      "P1-02": [
+        // 逻辑词 II
+        {
+          word: "yet",
+          meaning: "然而，但是",
+          partOfSpeech: "conjunction",
+          examples: [
+            "He is tired, yet he continues to work.",
+            "The weather was cold, yet we enjoyed our trip.",
+            "She studied hard, yet she failed the test."
+          ]
+        },
+        {
+          word: "thus",
+          meaning: "因此，从而",
+          partOfSpeech: "adverb",
+          examples: [
+            "He studied hard, thus he passed the exam.",
+            "It was raining, thus we stayed home.",
+            "She saved money, thus she could buy a new car."
+          ]
+        },
+        {
+          word: "as a result",
+          meaning: "结果，因此",
+          partOfSpeech: "phrase",
+          examples: [
+            "He studied hard; as a result, he passed the exam.",
+            "It rained heavily; as a result, the road was flooded.",
+            "She practiced daily; as a result, she won the competition."
+          ]
+        },
+        {
+          word: "in case",
+          meaning: "以防万一",
+          partOfSpeech: "phrase",
+          examples: [
+            "Take an umbrella in case it rains.",
+            "I'll bring extra money in case we need it.",
+            "Study hard in case there's a test."
+          ]
+        },
+        {
+          word: "as long as",
+          meaning: "只要",
+          partOfSpeech: "phrase",
+          examples: [
+            "You can go out as long as you come back early.",
+            "I'll help you as long as you need me.",
+            "We'll win as long as we work together."
+          ]
+        },
+        {
+          word: "even if",
+          meaning: "即使",
+          partOfSpeech: "phrase",
+          examples: [
+            "I'll go even if it rains.",
+            "He'll try even if he fails.",
+            "She'll help you even if she's busy."
+          ]
+        },
+        {
+          word: "even though",
+          meaning: "虽然，尽管",
+          partOfSpeech: "phrase",
+          examples: [
+            "Even though it was raining, we went for a walk.",
+            "Even though she was sick, she went to school.",
+            "Even though he is rich, he lives simply."
+          ]
+        },
+        {
+          word: "so that",
+          meaning: "以便，为了",
+          partOfSpeech: "phrase",
+          examples: [
+            "I study hard so that I can pass the exam.",
+            "She works late so that she can finish the project.",
+            "He saves money so that he can buy a car."
+          ]
+        },
+        {
+          word: "in order to",
+          meaning: "为了",
+          partOfSpeech: "phrase",
+          examples: [
+            "I study hard in order to pass the exam.",
+            "She works late in order to finish the project.",
+            "He exercises daily in order to stay healthy."
+          ]
+        },
+        {
+          word: "despite",
+          meaning: "尽管，不管",
+          partOfSpeech: "preposition",
+          examples: [
+            "Despite the rain, we went for a walk.",
+            "Despite being sick, she went to school.",
+            "Despite his wealth, he lives simply."
+          ]
+        },
+        {
+          word: "provided",
+          meaning: "如果，假如",
+          partOfSpeech: "conjunction",
+          examples: [
+            "You can go out provided you come back early.",
+            "I'll help you provided you need me.",
+            "We'll win provided we work together."
+          ]
+        },
+        {
+          word: "whereas",
+          meaning: "然而，但是",
+          partOfSpeech: "conjunction",
+          examples: [
+            "I like coffee, whereas my sister prefers tea.",
+            "He is tall, whereas his brother is short.",
+            "She likes hot weather, whereas I prefer cold weather."
+          ]
+        },
+        {
+          word: "nonetheless",
+          meaning: "然而，不过",
+          partOfSpeech: "adverb",
+          examples: [
+            "It was raining. Nonetheless, we went for a walk.",
+            "She was tired. Nonetheless, she finished her work.",
+            "He failed the test. Nonetheless, he didn't give up."
+          ]
+        },
+        {
+          word: "but",
+          meaning: "但是",
+          partOfSpeech: "conjunction",
+          examples: [
+            "I wanted to go, but I was too busy.",
+            "She studied hard, but she still failed the test.",
+            "The weather was cold, but we enjoyed our trip."
+          ]
+        },
+        {
+          word: "because",
+          meaning: "因为",
+          partOfSpeech: "conjunction",
+          examples: [
+            "I stayed home because it was raining.",
+            "She was late because the bus was delayed.",
+            "He failed the test because he didn't study."
+          ]
+        }
+      ],
+      "P1-03": [
+        // 动作词 I
+        {
+          word: "manage",
+          meaning: "管理，设法做到",
+          partOfSpeech: "verb",
+          examples: [
+            "She manages a small business in the city.",
+            "I managed to finish the project on time.",
+            "He manages his time very well."
+          ]
+        },
+        {
+          word: "improve",
+          meaning: "提高，改善",
+          partOfSpeech: "verb",
+          examples: [
+            "I want to improve my English skills.",
+            "The company has improved its customer service.",
+            "Exercise can improve your health."
+          ]
+        },
+        {
+          word: "provide",
+          meaning: "提供，供给",
+          partOfSpeech: "verb",
+          examples: [
+            "The school provides free textbooks for students.",
+            "Parents provide food and shelter for their children.",
+            "The company will provide training for new employees."
+          ]
+        },
+        {
+          word: "realize",
+          meaning: "意识到，实现",
+          partOfSpeech: "verb",
+          examples: [
+            "I realize that I made a mistake.",
+            "She realized her dream of becoming a doctor.",
+            "He didn't realize how late it was."
+          ]
+        },
+        {
+          word: "decide",
+          meaning: "决定，下决心",
+          partOfSpeech: "verb",
+          examples: [
+            "I need to decide what to do next.",
+            "She decided to study abroad next year.",
+            "They decided to get married in the spring."
+          ]
+        },
+        {
+          word: "achieve",
+          meaning: "达到，实现",
+          partOfSpeech: "verb",
+          examples: [
+            "She achieved her goal of winning the competition.",
+            "Hard work helps you achieve success.",
+            "He has achieved a lot in his career."
+          ]
+        },
+        {
+          word: "expect",
+          meaning: "期望，预料",
+          partOfSpeech: "verb",
+          examples: [
+            "I expect to finish the work by Friday.",
+            "She expects her son to study hard.",
+            "They didn't expect the weather to be so bad."
+          ]
+        },
+        {
+          word: "believe",
+          meaning: "相信，认为",
+          partOfSpeech: "verb",
+          examples: [
+            "I believe that honesty is the best policy.",
+            "She believes in herself and her abilities.",
+            "He doesn't believe what he heard."
+          ]
+        },
+        {
+          word: "consider",
+          meaning: "考虑，认为",
+          partOfSpeech: "verb",
+          examples: [
+            "I need to consider my options.",
+            "She considers him to be her best friend.",
+            "They are considering moving to a new city."
+          ]
+        },
+        {
+          word: "suggest",
+          meaning: "建议，暗示",
+          partOfSpeech: "verb",
+          examples: [
+            "I suggest that we go to the park tomorrow.",
+            "She suggested eating at a new restaurant.",
+            "His silence suggested that he was angry."
+          ]
+        },
+        {
+          word: "require",
+          meaning: "需要，要求",
+          partOfSpeech: "verb",
+          examples: [
+            "The job requires a college degree.",
+            "This task requires patience.",
+            "The teacher requires all students to hand in their homework."
+          ]
+        },
+        {
+          word: "remain",
+          meaning: "保持，剩余",
+          partOfSpeech: "verb",
+          examples: [
+            "Please remain quiet during the test.",
+            "A few problems remain to be solved.",
+            "He remained calm despite the emergency."
+          ]
+        },
+        {
+          word: "explain",
+          meaning: "解释，说明",
+          partOfSpeech: "verb",
+          examples: [
+            "Can you explain this problem to me?",
+            "The teacher explained the lesson carefully.",
+            "She explained why she was late."
+          ]
+        },
+        {
+          word: "describe",
+          meaning: "描述，形容",
+          partOfSpeech: "verb",
+          examples: [
+            "Can you describe the person you saw?",
+            "She described the movie as exciting.",
+            "He described his trip to Europe in detail."
+          ]
+        },
+        {
+          word: "express",
+          meaning: "表达，表现",
+          partOfSpeech: "verb",
+          examples: [
+            "I want to express my gratitude.",
+            "She expressed her feelings through art.",
+            "He expressed his opinion on the matter."
+          ]
+        }
+      ],
+      "P1-04": [
+        // 动作词 II
+        {
+          word: "increase",
+          meaning: "增加，提高",
+          partOfSpeech: "verb",
+          examples: [
+            "The company plans to increase its profits.",
+            "Exercise can increase your energy levels.",
+            "The population of the city is increasing."
+          ]
+        },
+        {
+          word: "decrease",
+          meaning: "减少，降低",
+          partOfSpeech: "verb",
+          examples: [
+            "The company plans to decrease its expenses.",
+            "Exercise can decrease your stress levels.",
+            "The temperature is decreasing as winter approaches."
+          ]
+        },
+        {
+          word: "maintain",
+          meaning: "维持，保持",
+          partOfSpeech: "verb",
+          examples: [
+            "He maintains his car regularly.",
+            "She maintains a healthy lifestyle.",
+            "The company maintains high standards."
+          ]
+        },
+        {
+          word: "prevent",
+          meaning: "预防，阻止",
+          partOfSpeech: "verb",
+          examples: [
+            "We need to prevent accidents from happening.",
+            "Vaccines can prevent diseases.",
+            "She locked the door to prevent burglars."
+          ]
+        },
+        {
+          word: "support",
+          meaning: "支持，支撑",
+          partOfSpeech: "verb",
+          examples: [
+            "My family supports me.",
+            "He supports his local football team.",
+            "The bridge supports heavy traffic."
+          ]
+        },
+        {
+          word: "choose",
+          meaning: "选择，挑选",
+          partOfSpeech: "verb",
+          examples: [
+            "I need to choose a college.",
+            "She chose the red dress for the party.",
+            "They chose to go on vacation to the beach."
+          ]
+        },
+        {
+          word: "avoid",
+          meaning: "避免，避开",
+          partOfSpeech: "verb",
+          examples: [
+            "I try to avoid making mistakes.",
+            "She avoids eating junk food.",
+            "They avoid talking about politics."
+          ]
+        },
+        {
+          word: "imagine",
+          meaning: "想象，设想",
+          partOfSpeech: "verb",
+          examples: [
+            "Can you imagine living on Mars?",
+            "She imagines herself as a famous singer.",
+            "He imagines that he will be rich one day."
+          ]
+        },
+        {
+          word: "create",
+          meaning: "创造，创建",
+          partOfSpeech: "verb",
+          examples: [
+            "The artist creates beautiful paintings.",
+            "She created a new recipe for cookies.",
+            "They created a new company last year."
+          ]
+        },
+        {
+          word: "solve",
+          meaning: "解决，解答",
+          partOfSpeech: "verb",
+          examples: [
+            "I need to solve this math problem.",
+            "She solved the mystery of the missing cat.",
+            "They solved the conflict peacefully."
+          ]
+        },
+        {
+          word: "suppose",
+          meaning: "假设，认为",
+          partOfSpeech: "verb",
+          examples: [
+            "Suppose we go to the park tomorrow.",
+            "She supposes that he will come.",
+            "They suppose that the project will be finished on time."
+          ]
+        },
+        {
+          word: "wonder",
+          meaning: "想知道，好奇",
+          partOfSpeech: "verb",
+          examples: [
+            "I wonder what the weather will be like tomorrow.",
+            "She wonders if he will come.",
+            "They wonder how the movie will end."
+          ]
+        },
+        {
+          word: "notice",
+          meaning: "注意到，察觉",
+          partOfSpeech: "verb",
+          examples: [
+            "I noticed that she was sad.",
+            "She noticed the beautiful flowers in the garden.",
+            "They noticed that the door was open."
+          ]
+        },
+        {
+          word: "depend",
+          meaning: "依靠，依赖",
+          partOfSpeech: "verb",
+          examples: [
+            "I depend on my parents for support.",
+            "She depends on public transportation to get around.",
+            "They depend on the weather for their crops."
+          ]
+        },
+        {
+          word: "admire",
+          meaning: "钦佩，赞赏",
+          partOfSpeech: "verb",
+          examples: [
+            "I admire his courage.",
+            "She admires the beautiful sunset.",
+            "They admire their teacher's knowledge."
+          ]
+        }
+      ]
+    };
+
+    // 应用状态
+    const appState = {
+      currentScreen: 'welcome',
+      currentQuestion: 0,
+      currentGroup: 'P1-01',
+      score: 0,
+      totalQuestions: 0,
+      correctAnswers: 0,
+      wrongQuestions: [],
+      wordMastery: {},
+      questionBank: [],
+      unlockedGroups: ['P1-01'], // 初始只解锁第一组
+      groupScores: {} // 记录每组的得分
+    };
+
+    // DOM 元素
+    const elements = {
+      welcomeScreen: document.getElementById('welcome-screen'),
+      questionScreen: document.getElementById('question-screen'),
+      reviewScreen: document.getElementById('review-screen'),
+      completeScreen: document.getElementById('complete-screen'),
+      startBtn: document.getElementById('start-btn'),
+      nextBtn: document.getElementById('next-btn'),
+      prevBtn: document.getElementById('prev-btn'),
+      continueBtn: document.getElementById('continue-btn'),
+      restartBtn: document.getElementById('restart-btn'),
+      reviewWrongBtn: document.getElementById('review-wrong-btn'),
+      completeRestartBtn: document.getElementById('complete-restart-btn'),
+      progressBar: document.getElementById('progress-bar'),
+      progressText: document.getElementById('progress-text'),
+      score: document.getElementById('score'),
+      questionType: document.getElementById('question-type'),
+      questionContent: document.getElementById('question-content'),
+      questionSentence: document.getElementById('question-sentence'),
+      optionsContainer: document.getElementById('options-container'),
+      resultIcon: document.getElementById('result-icon'),
+      resultTitle: document.getElementById('result-title'),
+      resultMessage: document.getElementById('result-message'),
+      resultScore: document.getElementById('result-score'),
+      totalScore: document.getElementById('total-score'),
+      wrongQuestions: document.getElementById('wrong-questions'),
+      completeScore: document.getElementById('complete-score'),
+      completeTotalScore: document.getElementById('complete-total-score'),
+      accuracy: document.getElementById('accuracy'),
+      masteredWords: document.getElementById('mastered-words')
+    };
+
+    // 初始化应用
+    function initApp() {
+      // 初始化单词掌握度
+      Object.values(wordDatabase).forEach(group => {
+        group.forEach(word => {
+          appState.wordMastery[word.word] = 0;
+        });
+      });
+      
+      // 生成分组选择UI
+      generateGroupSelection();
+      
+      // 绑定事件监听器
+      bindEventListeners();
+    }
+    
+    // 生成分组选择UI
+    function generateGroupSelection() {
+      const groupSelection = document.getElementById('group-selection');
+      groupSelection.innerHTML = '';
+      
+      // 遍历所有分组
+      Object.keys(wordDatabase).forEach(groupKey => {
+        const isUnlocked = appState.unlockedGroups.includes(groupKey);
+        const groupWords = wordDatabase[groupKey];
+        const isCompleted = appState.groupScores[groupKey] === groupWords.length * 10; // 满分
+        
+        // 创建分组选项
+        const groupElement = document.createElement('div');
+        groupElement.className = `p-4 border rounded-lg cursor-pointer transition-colors ${isUnlocked ? 'hover:bg-light/50' : 'opacity-50 cursor-not-allowed'}`;
+        groupElement.dataset.group = groupKey;
+        
+        // 分组标题
+        const groupTitle = document.createElement('h4');
+        groupTitle.className = 'font-semibold mb-2';
+        groupTitle.textContent = groupKey;
+        
+        // 分组类型
+        const groupType = document.createElement('p');
+        groupType.className = 'text-sm text-gray-600 mb-2';
+        groupType.textContent = groupKey.includes('01') || groupKey.includes('02') ? '逻辑词' : '动词';
+        
+        // 分组状态
+        const groupStatus = document.createElement('p');
+        groupStatus.className = 'text-xs text-gray-500';
+        if (!isUnlocked) {
+          groupStatus.textContent = '未解锁';
+        } else if (isCompleted) {
+          groupStatus.textContent = '已完成';
+        } else {
+          groupStatus.textContent = `${groupWords.length}个单词`;
+        }
+        
+        // 组合元素
+        groupElement.appendChild(groupTitle);
+        groupElement.appendChild(groupType);
+        groupElement.appendChild(groupStatus);
+        
+        // 添加点击事件（只有解锁的分组可点击）
+        if (isUnlocked) {
+          groupElement.addEventListener('click', function() {
+            // 移除其他分组的选中状态
+            document.querySelectorAll('#group-selection > div').forEach(el => {
+              el.classList.remove('border-secondary', 'bg-light/30');
+            });
+            
+            // 设置当前分组为选中状态
+            this.classList.add('border-secondary', 'bg-light/30');
+            
+            // 更新当前分组
+            appState.currentGroup = groupKey;
+            console.log('选择分组：', groupKey);
+          });
+        }
+        
+        groupSelection.appendChild(groupElement);
+      });
+      
+      // 默认选中第一个解锁的分组
+      const firstUnlockedGroup = document.querySelector('#group-selection > div:not(.opacity-50)');
+      if (firstUnlockedGroup) {
+        firstUnlockedGroup.click();
+      }
+    }
+
+    // 绑定事件监听器
+    function bindEventListeners() {
+      elements.startBtn.addEventListener('click', startPractice);
+      elements.nextBtn.addEventListener('click', handleNextQuestion);
+      elements.prevBtn.addEventListener('click', handlePrevQuestion);
+      elements.continueBtn.addEventListener('click', handleContinue);
+      elements.restartBtn.addEventListener('click', restartPractice);
+      elements.reviewWrongBtn.addEventListener('click', showReviewScreen);
+      elements.completeRestartBtn.addEventListener('click', restartPractice);
+    }
+
+    // 开始练习
+    function startPractice() {
+      console.log('开始练习');
+      // 生成题目库
+      generateQuestionBank();
+      console.log('题目库生成完成，题目数量：', appState.questionBank.length);
+      
+      // 重置状态
+      appState.currentQuestion = 0;
+      appState.score = 0;
+      appState.correctAnswers = 0;
+      appState.wrongQuestions = [];
+      
+      // 更新UI
+      updateScore();
+      showScreen('question');
+      console.log('显示题目屏幕，当前题目索引：', appState.currentQuestion);
+      loadQuestion();
+    }
+    
+    // 加载题目
+    function loadQuestion() {
+      console.log('加载题目，当前题目索引：', appState.currentQuestion);
+      const question = appState.questionBank[appState.currentQuestion];
+      console.log('题目数据：', question);
+      if (!question) {
+        console.error('没有找到题目数据');
+        return;
+      }
+      
+      // 重置选项容器样式
+      elements.optionsContainer.className = 'space-y-3 mb-6';
+      
+      // 更新题目类型和内容
+      elements.questionType.textContent = question.type === 'multiple-choice' ? '单句选择题' : '逻辑配对题';
+      elements.questionContent.textContent = question.type === 'multiple-choice' ? '请选择与划线单词意思最接近的选项：' : '请将单词与正确的意思配对：';
+      
+      // 更新例句和图片区域
+      if (question.type === 'multiple-choice') {
+        // 单句选择题：英文例句挖空，选中文意思
+        const sentenceWithBlank = question.example.replace(
+          question.word,
+          `<span class="bg-yellow-200 px-2 py-1 rounded font-semibold">______</span>`
+        );
+        
+        // 添加图片展示区域（如果是动词）
+        let imageSection = '';
+        if (question.partOfSpeech === 'verb') {
+          imageSection = `
+            <div class="mt-4 bg-gray-100 rounded-lg p-4 flex items-center justify-center">
+              <div class="text-center">
+                <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=english%20verb%20action%20illustration&image_size=square" alt="动词插图" class="w-32 h-32 object-cover rounded-lg mb-2">
+                <p class="text-sm text-gray-500">图片辅助区域</p>
+              </div>
+            </div>
+          `;
+        }
+        
+        elements.questionSentence.innerHTML = `
+          <div class="mb-2">${sentenceWithBlank}</div>
+          <div class="text-sm text-gray-500">划线单词：<span class="font-semibold text-accent">${question.word}</span></div>
+          ${imageSection}
+        `;
+      } else {
+        // 逻辑配对题：单词与中文定义连线
+        elements.questionSentence.innerHTML = `
+          <div class="text-center mb-4">
+            <h3 class="text-xl font-bold text-accent mb-2">${question.word}</h3>
+            <p class="text-sm text-gray-500">请选择正确的中文意思</p>
+          </div>
+        `;
+      }
+      
+      // 生成选项
+      generateOptionsUI(question);
+      console.log('选项生成完成');
+      
+      // 更新进度
+      updateProgress();
+      console.log('进度更新完成');
+    }
+
+    // 生成题目库
+    function generateQuestionBank() {
+      const questions = [];
+      const currentGroupWords = wordDatabase[appState.currentGroup];
+      
+      // 根据分组类型调整题型分布
+      const isLogicGroup = appState.currentGroup === 'P1-01' || appState.currentGroup === 'P1-02';
+      
+      // 为每个单词生成3个不同的例句题目
+      currentGroupWords.forEach(word => {
+        word.examples.forEach((example, index) => {
+          // 根据分组类型选择题型
+          const questionType = isLogicGroup && Math.random() > 0.3 ? 'matching' : 'multiple-choice';
+          
+          questions.push({
+            round: index + 1,
+            type: questionType,
+            word: word.word,
+            meaning: word.meaning,
+            partOfSpeech: word.partOfSpeech,
+            example: example,
+            correctAnswer: word.meaning,
+            options: questionType === 'multiple-choice' ? generateOptions(word.meaning) : generateMatchingOptions(word.meaning)
+          });
+        });
+      });
+      
+      // 打乱题目顺序
+      appState.questionBank = shuffleArray(questions);
+      appState.totalQuestions = appState.questionBank.length;
+    }
+
+    // 生成选项
+    function generateOptions(correctAnswer) {
+      const options = [correctAnswer];
+      const currentGroupWords = wordDatabase[appState.currentGroup];
+      const otherMeanings = currentGroupWords
+        .filter(word => word.meaning !== correctAnswer)
+        .map(word => word.meaning);
+      
+      // 随机选择3个其他意思作为干扰选项
+      while (options.length < 4 && otherMeanings.length > 0) {
+        const randomMeaning = otherMeanings[Math.floor(Math.random() * otherMeanings.length)];
+        if (!options.includes(randomMeaning)) {
+          options.push(randomMeaning);
+        }
+      }
+      
+      // 如果当前分组选项不够，从其他分组补充
+      if (options.length < 4) {
+        Object.values(wordDatabase).forEach(group => {
+          group.forEach(word => {
+            if (options.length < 4 && word.meaning !== correctAnswer && !options.includes(word.meaning)) {
+              options.push(word.meaning);
+            }
+          });
+        });
+      }
+      
+      return shuffleArray(options);
+    }
+
+    // 生成逻辑配对题选项
+    function generateMatchingOptions(correctAnswer) {
+      const options = [];
+      const currentGroupWords = wordDatabase[appState.currentGroup];
+      
+      // 从当前分组中选择选项
+      currentGroupWords.forEach(word => {
+        if (word.meaning !== correctAnswer) {
+          options.push(word.meaning);
+        }
+      });
+      
+      // 随机选择3个其他意思
+      const shuffledOptions = shuffleArray(options).slice(0, 3);
+      shuffledOptions.push(correctAnswer);
+      
+      return shuffleArray(shuffledOptions);
+    }
+
+    // 加载题目
+    function loadQuestion() {
+      const question = appState.questionBank[appState.currentQuestion];
+      if (!question) return;
+      
+      // 重置选项容器样式
+      elements.optionsContainer.className = 'space-y-3 mb-6';
+      
+      // 更新题目类型和内容
+      elements.questionType.textContent = question.type === 'multiple-choice' ? '单句选择题' : '逻辑配对题';
+      elements.questionContent.textContent = question.type === 'multiple-choice' ? '请选择与划线单词意思最接近的选项：' : '请将单词与正确的意思配对：';
+      
+      // 更新例句和图片区域
+      if (question.type === 'multiple-choice') {
+        // 单句选择题：英文例句挖空，选中文意思
+        const sentenceWithBlank = question.example.replace(
+          question.word,
+          `<span class="bg-yellow-200 px-2 py-1 rounded font-semibold">______</span>`
+        );
+        
+        // 添加图片展示区域（如果是动词）
+        let imageSection = '';
+        if (question.partOfSpeech === 'verb') {
+          imageSection = `
+            <div class="mt-4 bg-gray-100 rounded-lg p-4 flex items-center justify-center">
+              <div class="text-center">
+                <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=english%20verb%20action%20illustration&image_size=square" alt="动词插图" class="w-32 h-32 object-cover rounded-lg mb-2">
+                <p class="text-sm text-gray-500">图片辅助区域</p>
+              </div>
+            </div>
+          `;
+        }
+        
+        elements.questionSentence.innerHTML = `
+          <div class="mb-2">${sentenceWithBlank}</div>
+          <div class="text-sm text-gray-500">划线单词：<span class="font-semibold text-accent">${question.word}</span></div>
+          ${imageSection}
+        `;
+      } else {
+        // 逻辑配对题：单词与中文定义连线
+        elements.questionSentence.innerHTML = `
+          <div class="text-center mb-4">
+            <h3 class="text-xl font-bold text-accent mb-2">${question.word}</h3>
+            <p class="text-sm text-gray-500">请选择正确的中文意思</p>
+          </div>
+        `;
+      }
+      
+      // 生成选项
+      generateOptionsUI(question);
+      
+      // 更新进度
+      updateProgress();
+    }
+
+    // 生成选项UI
+    function generateOptionsUI(question) {
+      console.log('生成选项UI，题目类型：', question.type);
+      console.log('选项数量：', question.options.length);
+      // 清空选项容器
+      elements.optionsContainer.innerHTML = '';
+      
+      if (question.type === 'multiple-choice') {
+        // 单句选择题选项
+        question.options.forEach((option, index) => {
+          console.log('生成选项：', index, option);
+          // 创建选项元素
+          const optionDiv = document.createElement('div');
+          optionDiv.className = 'mb-3';
+          
+          // 创建单选按钮
+          const radioInput = document.createElement('input');
+          radioInput.type = 'radio';
+          radioInput.name = 'answer';
+          radioInput.id = `option-${index}`;
+          radioInput.value = option;
+          
+          // 创建标签
+          const label = document.createElement('label');
+          label.htmlFor = `option-${index}`;
+          label.className = 'flex items-center p-3 border rounded-lg cursor-pointer hover:bg-light/50 transition-colors w-full';
+          label.innerHTML = `
+            <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center mr-3 radio-custom">
+              <div class="w-3 h-3 rounded-full bg-secondary hidden radio-dot"></div>
+            </div>
+            <span>${option}</span>
+          `;
+          
+          // 添加点击事件
+          label.addEventListener('click', function() {
+            // 移除其他选项的选中状态
+            document.querySelectorAll('.radio-custom').forEach(custom => {
+              custom.classList.remove('border-secondary');
+              custom.querySelector('.radio-dot').classList.add('hidden');
+            });
+            
+            // 设置当前选项为选中状态
+            this.querySelector('.radio-custom').classList.add('border-secondary');
+            this.querySelector('.radio-dot').classList.remove('hidden');
+            
+            // 记录用户选择
+            question.userAnswer = option;
+            console.log('用户选择：', option);
+          });
+          
+          // 组合元素
+          optionDiv.appendChild(radioInput);
+          optionDiv.appendChild(label);
+          elements.optionsContainer.appendChild(optionDiv);
+        });
+      } else {
+        // 逻辑配对题选项
+        elements.optionsContainer.className = 'space-y-3 mb-6 grid grid-cols-2 gap-3';
+        question.options.forEach((option, index) => {
+          console.log('生成选项：', index, option);
+          // 创建选项元素
+          const optionDiv = document.createElement('div');
+          optionDiv.className = 'mb-3';
+          
+          // 创建单选按钮
+          const radioInput = document.createElement('input');
+          radioInput.type = 'radio';
+          radioInput.name = 'answer';
+          radioInput.id = `option-${index}`;
+          radioInput.value = option;
+          
+          // 创建标签
+          const label = document.createElement('label');
+          label.htmlFor = `option-${index}`;
+          label.className = 'flex flex-col items-center p-4 border rounded-lg cursor-pointer hover:bg-light/50 transition-colors w-full text-center';
+          label.innerHTML = `
+            <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center mb-2 radio-custom">
+              <div class="w-4 h-4 rounded-full bg-secondary hidden radio-dot"></div>
+            </div>
+            <span>${option}</span>
+          `;
+          
+          // 添加点击事件
+          label.addEventListener('click', function() {
+            // 移除其他选项的选中状态
+            document.querySelectorAll('.radio-custom').forEach(custom => {
+              custom.classList.remove('border-secondary');
+              custom.querySelector('.radio-dot').classList.add('hidden');
+            });
+            
+            // 设置当前选项为选中状态
+            this.querySelector('.radio-custom').classList.add('border-secondary');
+            this.querySelector('.radio-dot').classList.remove('hidden');
+            
+            // 记录用户选择
+            question.userAnswer = option;
+            console.log('用户选择：', option);
+          });
+          
+          // 组合元素
+          optionDiv.appendChild(radioInput);
+          optionDiv.appendChild(label);
+          elements.optionsContainer.appendChild(optionDiv);
+        });
+      }
+      console.log('选项UI生成完成');
+    }
+
+    // 处理下一题
+    function handleNextQuestion() {
+      const currentQuestion = appState.questionBank[appState.currentQuestion];
+      
+      // 检查是否已选择答案
+      if (!currentQuestion.userAnswer) {
+        alert('请选择一个答案！');
+        return;
+      }
+      
+      // 检查答案是否正确
+      const isCorrect = currentQuestion.userAnswer === currentQuestion.correctAnswer;
+      
+      // 更新状态
+      if (isCorrect) {
+        appState.correctAnswers++;
+        appState.score += 10;
+        appState.wordMastery[currentQuestion.word] = (appState.wordMastery[currentQuestion.word] || 0) + 1;
+      } else {
+        // 记录错题
+        appState.wrongQuestions.push(currentQuestion);
+      }
+      
+      // 更新UI
+      updateScore();
+      showResultScreen(isCorrect, currentQuestion);
+    }
+
+    // 处理上一题
+    function handlePrevQuestion() {
+      if (appState.currentQuestion > 0) {
+        appState.currentQuestion--;
+        loadQuestion();
+      }
+    }
+
+    // 显示结果
+    function showResultScreen(isCorrect, question) {
+      // 更新结果区域
+      elements.resultIcon.className = isCorrect ? 'fa fa-check-circle text-4xl text-green-500 mb-4' : 'fa fa-times-circle text-4xl text-red-500 mb-4';
+      elements.resultTitle.textContent = isCorrect ? '回答正确！' : '回答错误！';
+      elements.resultMessage.textContent = isCorrect ? '太棒了，继续加油！' : `正确答案是：${question.correctAnswer}`;
+      elements.resultScore.textContent = isCorrect ? '10' : '0';
+      elements.totalScore.textContent = appState.score;
+      
+      // 显示结果区域，隐藏控制按钮
+      document.getElementById('result-section').classList.remove('hidden');
+      document.getElementById('question-controls').classList.add('hidden');
+    }
+
+    // 处理继续
+    function handleContinue() {
+      appState.currentQuestion++;
+      
+      if (appState.currentQuestion < appState.totalQuestions) {
+        // 隐藏结果区域，显示控制按钮
+        document.getElementById('result-section').classList.add('hidden');
+        document.getElementById('question-controls').classList.remove('hidden');
+        // 加载下一题
+        loadQuestion();
+      } else {
+        // 练习完成
+        showCompleteScreen();
+      }
+    }
+
+    // 显示完成屏幕
+    function showCompleteScreen() {
+      // 计算正确率
+      const accuracy = Math.round((appState.correctAnswers / appState.totalQuestions) * 100);
+      
+      // 计算掌握的单词数
+      const masteredWordsCount = Object.values(appState.wordMastery).filter(count => count === 3).length;
+      
+      // 更新完成屏幕数据
+      elements.completeScore.textContent = appState.score;
+      elements.completeTotalScore.textContent = appState.score;
+      elements.accuracy.textContent = `${accuracy}%`;
+      elements.masteredWords.textContent = masteredWordsCount;
+      
+      // 记录分组得分
+      appState.groupScores[appState.currentGroup] = appState.score;
+      
+      // 检查是否解锁下一组
+      const currentGroupIndex = parseInt(appState.currentGroup.split('-')[1]);
+      const nextGroupIndex = currentGroupIndex + 1;
+      if (nextGroupIndex <= 4) {
+        const nextGroup = `P1-${nextGroupIndex.toString().padStart(2, '0')}`;
+        // 只有满分才能解锁下一组
+        if (appState.score === wordDatabase[appState.currentGroup].length * 10) {
+          if (!appState.unlockedGroups.includes(nextGroup)) {
+            appState.unlockedGroups.push(nextGroup);
+            alert(`恭喜！您已解锁新分组：${nextGroup}`);
+          }
+        }
+      }
+      
+      // 显示完成屏幕
+      showScreen('complete');
+    }
+
+    // 显示错题复盘屏幕
+    function showReviewScreen() {
+      const wrongQuestionsContainer = document.getElementById('wrong-questions');
+      wrongQuestionsContainer.innerHTML = '';
+      
+      if (appState.wrongQuestions.length === 0) {
+        const noWrongQuestions = document.createElement('div');
+        noWrongQuestions.className = 'text-center py-8';
+        noWrongQuestions.innerHTML = `
+          <i class="fa fa-check-circle text-4xl text-green-500 mb-4"></i>
+          <p class="text-gray-600">太棒了！本次练习没有错题。</p>
+        `;
+        wrongQuestionsContainer.appendChild(noWrongQuestions);
+      } else {
+        appState.wrongQuestions.forEach((question, index) => {
+          const wrongQuestionElement = document.createElement('div');
+          wrongQuestionElement.className = 'border rounded-lg p-4 mb-4';
+          wrongQuestionElement.innerHTML = `
+            <h3 class="font-semibold mb-2">第${index + 1}题</h3>
+            <p class="text-gray-600 mb-2">${question.type === 'multiple-choice' ? '单句选择题' : '逻辑配对题'}</p>
+            <p class="bg-light/50 p-2 rounded mb-2">${question.example}</p>
+            <p class="mb-2">您的答案：<span class="text-red-500">${question.userAnswer}</span></p>
+            <p class="mb-2">正确答案：<span class="text-green-500">${question.correctAnswer}</span></p>
+          `;
+          wrongQuestionsContainer.appendChild(wrongQuestionElement);
+        });
+      }
+      
+      showScreen('review');
+    }
+
+    // 重新开始练习
+    function restartPractice() {
+      showScreen('welcome');
+      generateGroupSelection();
+    }
+
+    // 显示指定屏幕
+    function showScreen(screenName) {
+      // 隐藏所有屏幕
+      elements.welcomeScreen.classList.add('hidden');
+      elements.questionScreen.classList.add('hidden');
+      elements.reviewScreen.classList.add('hidden');
+      elements.completeScreen.classList.add('hidden');
+      
+      // 显示指定屏幕
+      switch (screenName) {
+        case 'welcome':
+          elements.welcomeScreen.classList.remove('hidden');
+          break;
+        case 'question':
+          elements.questionScreen.classList.remove('hidden');
+          break;
+        case 'review':
+          elements.reviewScreen.classList.remove('hidden');
+          break;
+        case 'complete':
+          elements.completeScreen.classList.remove('hidden');
+          break;
+      }
+      
+      appState.currentScreen = screenName;
+    }
+
+    // 更新分数
+    function updateScore() {
+      elements.score.textContent = appState.score;
+    }
+
+    // 更新进度
+    function updateProgress() {
+      const progress = Math.round((appState.currentQuestion / appState.totalQuestions) * 100);
+      elements.progressBar.style.width = `${progress}%`;
+      elements.progressText.textContent = `${progress}%`;
+    }
+
+    // 打乱数组
+    function shuffleArray(array) {
+      const shuffled = [...array];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    }
+
+    // 初始化应用
+    initApp();
+  </script>
+</body>
+</html>
